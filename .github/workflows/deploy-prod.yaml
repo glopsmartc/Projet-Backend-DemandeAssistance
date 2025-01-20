@@ -61,7 +61,6 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Build and SonarCloud analysis
-        working-directory: ./DemandeAssistanceService
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_SECRET }}
