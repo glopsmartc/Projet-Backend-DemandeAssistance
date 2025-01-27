@@ -45,5 +45,16 @@ public class DossierAssistance {
     )
     @Column(name = "factures") // nom de colonne dans la table des factures
     private List<String> factures; // Liste des chemins ou URLs des PDF des factures
+
+    @ElementCollection
+    @CollectionTable(
+            name = "dossier_documents", // Nom de la table pour la liste des documents
+            joinColumns = @JoinColumn(name = "dossier_documents")
+    )
+    @Column(name = "documents") // nom de colonne dans la table des documents
+    private List<String> documents; // Liste des chemins ou URLs des PDF des documents
+
+    // l'identifiant du contrat (référence au microservice Contrat)
+    private Long idContrat;
 }
 
