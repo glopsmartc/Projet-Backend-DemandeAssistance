@@ -4,7 +4,10 @@ import com.demandeAssistance.demandeAssistance.dto.CreationDossierDTO;
 import com.demandeAssistance.demandeAssistance.model.DossierAssistance;
 import com.demandeAssistance.demandeAssistance.service.DossierAssistanceService;
 import com.demandeAssistance.demandeAssistance.service.DossierAssistanceServiceInterface;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,17 +20,49 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 @RestController
 public class DossierAssistanceController {
     private final DossierAssistanceServiceInterface dossierAssistanceService;
+    private static final Logger log = LoggerFactory.getLogger(DossierAssistanceController.class);
 
     public DossierAssistanceController(DossierAssistanceServiceInterface dossierAssistanceService) {
         this.dossierAssistanceService = dossierAssistanceService;
     }
 
     @PostMapping(value="/create", consumes = {MULTIPART_FORM_DATA_VALUE, "application/json"})
+    @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<DossierAssistance> createDossier(
             @RequestBody CreationDossierDTO createDossierDTO, @RequestParam("constat") MultipartFile constat,
             @RequestParam(value = "documents", required = false) List<MultipartFile> documents) throws IOException {
 
         DossierAssistance dossier = dossierAssistanceService.createDossier(createDossierDTO, constat, documents);
         return ResponseEntity.ok(dossier);
+    }
+
+    // Les dossiers du meme contrat
+    @GetMapping("/getContratDossiers/{id}")
+    @PreAuthorize("hasAnyRole('CLIENT','CONSEILLER')")
+    public ResponseEntity<List<DossierAssistance>> getContratDossiers(@PathVariable Long idContrat)
+    {
+        List<DossierAssistance> dossierAssistances = dossierAssistanceService.getContratDossiers(idContrat);
+        if (dossierAssistances.isEmpty()) {
+            log.warn("No dossiers found.");
+        } else {
+            log.info("Found dossiers: {}", dossierAssistances);
+        }
+        return ResponseEntity.ok(dossierAssistances);
+    }
+
+    // Tous les dossiers dans la base de donnees
+    @GetMapping("/allDossiers")
+    @PreAuthorize("hasRole('CONSEILLER')")
+    public ResponseEntity<List<DossierAssistance>> allDossiers() {
+        log.info("Entered allDossiers method");
+        List<DossierAssistance> dossiers = dossierAssistanceService.getAllDossiers();
+
+        if (dossiers.isEmpty()) {
+            log.warn("No dossiers found.");
+        } else {
+            log.info("Found dossiers: {}", dossiers);
+        }
+
+        return ResponseEntity.ok(dossiers);
     }
 }

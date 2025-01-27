@@ -9,4 +9,8 @@ import java.util.List;
 
 public interface DossierAssistanceServiceInterface {
     DossierAssistance createDossier(CreationDossierDTO createDossierDTO, MultipartFile constat, List<MultipartFile> documents) throws IOException;
+
+    List<DossierAssistance> getContratDossiers(Long idContrat);
+
+    List<DossierAssistance> getAllDossiers();
 }

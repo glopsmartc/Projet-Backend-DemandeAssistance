@@ -93,4 +93,15 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
         }
         return filePaths;
     }
+
+    @Override
+    public List<DossierAssistance> getContratDossiers(Long idContrat) {
+        return dossierAssistanceRepository.findByIdContrat(idContrat);
+    }
+
+    @Override
+    public List<DossierAssistance> getAllDossiers() {
+        return (List<DossierAssistance>) dossierAssistanceRepository.findAll();
+    }
+
 }
