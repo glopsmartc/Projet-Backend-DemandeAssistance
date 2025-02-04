@@ -17,6 +17,8 @@ public class DossierAssistance {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idDossier;
 
+    private String typeAssistance;
+
     @Column(columnDefinition = "TEXT") // Permet de stocker un texte long
     private String description; // Texte pouvant contenir des images ou des fichiers (gestion via front ou service)
 

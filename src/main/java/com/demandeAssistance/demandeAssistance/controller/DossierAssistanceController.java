@@ -2,7 +2,6 @@ package com.demandeAssistance.demandeAssistance.controller;
 
 import com.demandeAssistance.demandeAssistance.dto.CreationDossierDTO;
 import com.demandeAssistance.demandeAssistance.model.DossierAssistance;
-import com.demandeAssistance.demandeAssistance.service.DossierAssistanceService;
 import com.demandeAssistance.demandeAssistance.service.DossierAssistanceServiceInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
