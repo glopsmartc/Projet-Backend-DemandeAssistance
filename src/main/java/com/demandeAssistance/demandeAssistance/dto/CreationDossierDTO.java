@@ -9,5 +9,8 @@ import java.util.List;
 @Getter
 public class CreationDossierDTO {
     private String description; // Description de la demande
+    private String type; // Type de la demande
     private Long idContrat; // Identifiant du contrat
+    private Boolean maladieChronique;
+    private String descriptionMaladie;
 }

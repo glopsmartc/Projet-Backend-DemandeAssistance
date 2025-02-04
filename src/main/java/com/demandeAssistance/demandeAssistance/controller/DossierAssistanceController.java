@@ -28,11 +28,13 @@ public class DossierAssistanceController {
 
     @PostMapping(value="/create", consumes = {MULTIPART_FORM_DATA_VALUE, "application/json"})
     @PreAuthorize("hasRole('CLIENT')")
-    public ResponseEntity<DossierAssistance> createDossier(
-            @RequestBody CreationDossierDTO createDossierDTO, @RequestParam("constat") MultipartFile constat,
+    public ResponseEntity<DossierAssistance> createDossier(@RequestHeader("Authorization") String authorizationHeader,
+            @RequestBody CreationDossierDTO createDossierDTO, @RequestParam(value = "constat", required = false) MultipartFile constat,
             @RequestParam(value = "documents", required = false) List<MultipartFile> documents) throws IOException {
 
-        DossierAssistance dossier = dossierAssistanceService.createDossier(createDossierDTO, constat, documents);
+        String token = authorizationHeader.replace("Bearer ", "");
+
+        DossierAssistance dossier = dossierAssistanceService.createDossier(createDossierDTO, constat, documents, token);
         return ResponseEntity.ok(dossier);
     }
 
@@ -65,4 +67,20 @@ public class DossierAssistanceController {
 
         return ResponseEntity.ok(dossiers);
     }
+
+    @GetMapping("/contrat/{id}")
+    @PreAuthorize("hasAnyRole('CLIENT','CONSEILLER')")
+    public ResponseEntity<String> getOffreDesciptionByContratId(@PathVariable Long contratId, @RequestHeader("Authorization") String authorizationHeader) {
+        String token = authorizationHeader.replace("Bearer ", "");
+        log.info("Demande de récupération du contrat avec ID: {}", contratId);
+
+        String description = dossierAssistanceService.getOffreDesciptionByContratId(contratId, token);
+        if (description == null) {
+            log.warn("Aucun contrat trouvé pour l'ID: {}", contratId);
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(description);
+    }
+
 }
