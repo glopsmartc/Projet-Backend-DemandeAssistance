@@ -1,5 +1,7 @@
 package com.demandeAssistance.demandeAssistance.service;
 
+import com.demandeAssistance.demandeAssistance.config.ContratClientService;
+import com.demandeAssistance.demandeAssistance.config.UserClientService;
 import com.demandeAssistance.demandeAssistance.dto.CreationDossierDTO;
 import com.demandeAssistance.demandeAssistance.model.DossierAssistance;
 import com.demandeAssistance.demandeAssistance.model.DossierAssistanceRepository;
@@ -23,13 +25,17 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
 
     @Value("${file.storage.path}")
     private String storagePath;
+    private final UserClientService userClientService;
+    private final ContratClientService contratClientService;
 
-    public DossierAssistanceService(DossierAssistanceRepository dossierAssistanceRepository) {
+    public DossierAssistanceService(DossierAssistanceRepository dossierAssistanceRepository, UserClientService userClientService, ContratClientService contratClientService) {
         this.dossierAssistanceRepository = dossierAssistanceRepository;
+        this.userClientService = userClientService;
+        this.contratClientService = contratClientService;
     }
 
     @Override
-    public DossierAssistance createDossier(CreationDossierDTO createDossierDTO, MultipartFile constat, List<MultipartFile> documents) throws IOException {
+    public DossierAssistance createDossier(CreationDossierDTO createDossierDTO, MultipartFile constat, List<MultipartFile> documents, String token) throws IOException {
         // Crée une nouvelle instance de DossierAssistance
         DossierAssistance dossier = new DossierAssistance();
         dossier.setDescription(createDossierDTO.getDescription());
@@ -49,8 +55,19 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
         dossier.setActionsRealisees(List.of("Demande créée"));
         dossier.setFraisTotalDepense(0.0);
 
-        // Sauvegarde le dossier dans la base de données
-        return dossierAssistanceRepository.save(dossier);
+        dossier = dossierAssistanceRepository.save(dossier);
+
+        // Vérifier si l'utilisateur a une maladie chronique et mettre à jour le contrat
+        if (Boolean.TRUE.equals(createDossierDTO.getMaladieChronique())) {
+            log.info("Mise à jour des informations de maladie chronique pour le contrat {}", createDossierDTO.getIdContrat());
+            userClientService.updateMaladieChronique(
+                    createDossierDTO.getMaladieChronique(),
+                    createDossierDTO.getDescriptionMaladie(),
+                    token
+            );
+        }
+
+        return dossier;
     }
 
     private String savePdfFile(MultipartFile file, Long id, String subFolder) throws IOException {
@@ -104,4 +121,9 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
         return (List<DossierAssistance>) dossierAssistanceRepository.findAll();
     }
 
+    @Override
+    public String getOffreDesciptionByContratId(Long idContrat, String token) {
+        log.info("Récupération du contrat avec ID: {}", idContrat);
+        return contratClientService.getContratById(idContrat, token);
+    }
 }
