@@ -52,7 +52,8 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
         // Ajoute les valeurs générées automatiquement
         dossier.setDateOuverture(LocalDate.now());
         dossier.setStatutDossier("Ouvert");
-        dossier.setActionsRealisees(List.of("Demande créée"));
+        dossier.setPositionActuelle(createDossierDTO.getPositionActuelle());
+        dossier.setPriorite(createDossierDTO.getPriorite());
         dossier.setFraisTotalDepense(0.0);
 
         dossier = dossierAssistanceRepository.save(dossier);

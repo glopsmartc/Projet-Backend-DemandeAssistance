@@ -12,4 +12,7 @@ public class CreationDossierDTO {
     private Long idContrat; // Identifiant du contrat
     private Boolean maladieChronique;
     private String descriptionMaladie;
+    private String positionActuelle;
+
+    private String priorite;
 }
