@@ -58,5 +58,9 @@ public class DossierAssistance {
 
     // l'identifiant du contrat (référence au microservice Contrat)
     private Long idContrat;
+
+    private String positionActuelle;
+
+    private String priorite;
 }
 
