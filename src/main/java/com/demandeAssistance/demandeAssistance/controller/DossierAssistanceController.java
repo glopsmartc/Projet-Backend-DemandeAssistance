@@ -53,10 +53,27 @@ public class DossierAssistanceController {
 
     // Tous les dossiers dans la base de donnees
     @GetMapping("/allDossiers")
-    @PreAuthorize("hasRole('CONSEILLER')")
+    @PreAuthorize("hasAnyRole('CONSEILLER', 'LOGISTICIEN')")
     public ResponseEntity<List<DossierAssistance>> allDossiers() {
         log.info("Entered allDossiers method");
         List<DossierAssistance> dossiers = dossierAssistanceService.getAllDossiers();
+
+        if (dossiers.isEmpty()) {
+            log.warn("No dossiers found.");
+        } else {
+            log.info("Found dossiers: {}", dossiers);
+        }
+
+        return ResponseEntity.ok(dossiers);
+    }
+
+    @GetMapping("/allDossiersClient")
+    @PreAuthorize("hasRole('CLIENT')")
+    public ResponseEntity<List<DossierAssistance>> allDossiersClient(@RequestHeader("Authorization") String authorizationHeader) {
+        String token = authorizationHeader.replace("Bearer ", "");
+
+        log.info("Entered allDossiersClient method");
+        List<DossierAssistance> dossiers = dossierAssistanceService.getAllDossiersClient(token);
 
         if (dossiers.isEmpty()) {
             log.warn("No dossiers found.");

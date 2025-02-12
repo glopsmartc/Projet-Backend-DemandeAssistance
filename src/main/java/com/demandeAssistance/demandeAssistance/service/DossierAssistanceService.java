@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -127,4 +128,29 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
         log.info("Récupération du contrat avec ID: {}", idContrat);
         return contratClientService.getContratById(idContrat, token);
     }
+
+    @Override
+    public List<DossierAssistance> getAllDossiersClient(String token) {
+        List<Long> contratIds = contratClientService.getContratsIdForClient(token);
+        List<DossierAssistance> allDossiers = new ArrayList<>();
+
+        if (contratIds.isEmpty()) {
+            log.warn("Aucun contrat trouvé pour ce client.");
+            return Collections.emptyList();
+        }
+
+        for (Long contratId : contratIds) {
+            try {
+                List<DossierAssistance> dossiers = this.getContratDossiers(contratId);
+                if (dossiers != null && !dossiers.isEmpty()) {
+                    allDossiers.addAll(dossiers);
+                }
+            } catch (Exception e) {
+                log.error("Erreur lors de la récupération des dossiers pour le contrat ID: {}", contratId, e);
+            }
+        }
+
+        return allDossiers;
+    }
+
 }
