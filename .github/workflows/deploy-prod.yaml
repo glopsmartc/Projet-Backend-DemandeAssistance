@@ -9,6 +9,7 @@ env:
   IP_ADDRESS_BACK: ${{ secrets.IP_ADDRESS_BACK }}
   IP_ADDRESS_FRONT: ${{ secrets.IP_ADDRESS_FRONT }}
   JWT_SECRET: ${{secrets.JWT_SECRET}}
+  ENCRYPTION_SECRET_KEY: ${{ENCRYPTION_SECRET_KEY}}
 
 jobs:
   compile-DemandeAssistanceService:
@@ -140,4 +141,4 @@ jobs:
 
       - name: Run New Backend Container DemandeAssistanceService
         run: |
-          ssh -i ma-paire.pem -o StrictHostKeyChecking=no ubuntu@$IP_ADDRESS_BACK 'sudo docker run -d --name backend-demande-assistance -e SPRING_DATASOURCE_URL="${{ secrets.SPRING_DATASOURCE_URL }}" -e SPRING_DATASOURCE_USERNAME="${{ secrets.SPRING_DATASOURCE_USERNAME }}" -e SPRING_DATASOURCE_PASSWORD="${{ secrets.SPRING_DATASOURCE_PASSWORD }}" -e IP_ADDRESS_BACK="${{ secrets.IP_ADDRESS_BACK }}" -e IP_ADDRESS_FRONT="${{ secrets.IP_ADDRESS_FRONT }}" -p 8083:8083 ${{ secrets.DOCKER_USERNAME }}/backend-demande-assistance:${{ github.sha }}'
+          ssh -i ma-paire.pem -o StrictHostKeyChecking=no ubuntu@$IP_ADDRESS_BACK 'sudo docker run -d --name backend-demande-assistance -e ENCRYPTION_SECRET_KEY="${{ secrets.ENCRYPTION_SECRET_KEY }}" -e SPRING_DATASOURCE_URL="${{ secrets.SPRING_DATASOURCE_URL }}" -e SPRING_DATASOURCE_USERNAME="${{ secrets.SPRING_DATASOURCE_USERNAME }}" -e SPRING_DATASOURCE_PASSWORD="${{ secrets.SPRING_DATASOURCE_PASSWORD }}" -e IP_ADDRESS_BACK="${{ secrets.IP_ADDRESS_BACK }}" -e IP_ADDRESS_FRONT="${{ secrets.IP_ADDRESS_FRONT }}" -p 8083:8083 ${{ secrets.DOCKER_USERNAME }}/backend-demande-assistance:${{ github.sha }}'

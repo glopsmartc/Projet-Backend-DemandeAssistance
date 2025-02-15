@@ -3,6 +3,7 @@ package com.demandeAssistance.demandeAssistance.service;
 import com.demandeAssistance.demandeAssistance.config.ContratClientService;
 import com.demandeAssistance.demandeAssistance.config.UserClientService;
 import com.demandeAssistance.demandeAssistance.dto.CreationDossierDTO;
+import com.demandeAssistance.demandeAssistance.dto.UtilisateurDTO;
 import com.demandeAssistance.demandeAssistance.model.DossierAssistance;
 import com.demandeAssistance.demandeAssistance.model.DossierAssistanceRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -36,19 +37,25 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
     }
 
     @Override
-    public DossierAssistance createDossier(CreationDossierDTO createDossierDTO, MultipartFile constat, List<MultipartFile> documents, String token) throws IOException {
+    public DossierAssistance createDossier(CreationDossierDTO createDossierDTO, List<MultipartFile> documents, String token) throws Exception {
         // Crée une nouvelle instance de DossierAssistance
         DossierAssistance dossier = new DossierAssistance();
         dossier.setDescription(createDossierDTO.getDescription());
         dossier.setIdContrat(createDossierDTO.getIdContrat());
+        dossier.setNumTel(createDossierDTO.getNumTel());
+        dossier.setTypeAssistance(createDossierDTO.getType());
+        dossier.setEmail(createDossierDTO.getEmail());
 
-        // Enregistre le constat
-        String constatPath = savePdfFile(constat, createDossierDTO.getIdContrat(), "constats");
-        dossier.setConstat(constatPath);
-
-        // Enregistre les documents
-        List<String> documentPaths = savePdfFiles(documents, createDossierDTO.getIdContrat(), "documents");
-        dossier.setDocuments(documentPaths);
+        // Vérifie si la liste de documents n'est pas vide
+        if (documents == null || documents.isEmpty()) {
+            log.warn("Aucun document à sauvegarder pour le dossier avec le contrat ID {}", createDossierDTO.getIdContrat());
+            // throw new IllegalArgumentException("La liste des documents est vide.");
+            dossier.setDocuments(Collections.emptyList()); // Aucun document, on set une liste vide
+        } else {
+            // Enregistre les documents
+            List<String> documentPaths = savePdfFiles(documents, createDossierDTO.getIdContrat(), "documents-demande-assistance", token);
+            dossier.setDocuments(documentPaths);
+        }
 
         // Ajoute les valeurs générées automatiquement
         dossier.setDateOuverture(LocalDate.now());
@@ -72,13 +79,15 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
         return dossier;
     }
 
-    private String savePdfFile(MultipartFile file, Long id, String subFolder) throws IOException {
+    private String savePdfFile(MultipartFile file, Long id, String subFolder, String token) throws IOException {
         if (file == null || file.getOriginalFilename().isEmpty()) {
             throw new IllegalArgumentException("Fichier invalide fourni");
         }
 
+        UtilisateurDTO utilisateurDTO = userClientService.getAuthenticatedUser(token);
+
         // Nom du fichier avec ID et nom original
-        String fileName = id + "_" + file.getOriginalFilename();
+        String fileName = utilisateurDTO.getNom()+"_"+utilisateurDTO.getPrenom() + "_" +id + "_" + file.getOriginalFilename();
 
         // Crée le chemin du sous-dossier
         Path directory = Paths.get(storagePath, subFolder).toAbsolutePath().normalize();
@@ -103,11 +112,11 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
         return destinationFile.getAbsolutePath();
     }
 
-    private List<String> savePdfFiles(List<MultipartFile> files, Long id, String subFolder) throws IOException {
+    private List<String> savePdfFiles(List<MultipartFile> files, Long id, String subFolder, String token) throws IOException {
         List<String> filePaths = new ArrayList<>();
         if (files != null && !files.isEmpty()) {
             for (MultipartFile file : files) {
-                filePaths.add(savePdfFile(file, id, subFolder));
+                filePaths.add(savePdfFile(file, id, subFolder, token));
             }
         }
         return filePaths;

@@ -15,4 +15,6 @@ public class CreationDossierDTO {
     private String positionActuelle;
 
     private String priorite;
+    private String numTel;
+    private String email;
 }

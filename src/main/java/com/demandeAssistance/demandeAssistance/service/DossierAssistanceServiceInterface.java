@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface DossierAssistanceServiceInterface {
 
-    DossierAssistance createDossier(CreationDossierDTO createDossierDTO, MultipartFile constat, List<MultipartFile> documents, String token) throws IOException;
+    DossierAssistance createDossier(CreationDossierDTO createDossierDTO, List<MultipartFile> documents, String token) throws Exception;
 
     List<DossierAssistance> getContratDossiers(Long idContrat);
 
