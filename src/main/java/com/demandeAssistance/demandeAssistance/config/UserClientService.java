@@ -15,13 +15,15 @@ import org.springframework.web.client.RestTemplate;
 public class UserClientService {
 
     private final RestTemplate restTemplate;
+    private final EncryptionUtils encryptionUtils;
 
     @Value("${utilisateur.service.url}")
     String utilisateurServiceUrl;
 
     @Autowired
-    public UserClientService(RestTemplate restTemplate) {
+    public UserClientService(RestTemplate restTemplate, EncryptionUtils encryptionUtils) {
         this.restTemplate = restTemplate;
+        this.encryptionUtils = encryptionUtils;
     }
     private static final Logger log = LoggerFactory.getLogger(DossierAssistanceController.class);
 
@@ -51,7 +53,7 @@ public class UserClientService {
         return response.getBody();
     }
 
-    public void updateMaladieChronique(Boolean maladieChronique, String descriptionMaladie, String token) {
+    public void updateMaladieChronique(Boolean maladieChronique, String descriptionMaladie, String token) throws Exception {
         // URL de l'API du microservice gestion des contrats
         String url = utilisateurServiceUrl + "/clients/updateInfosMaladies";
 
@@ -63,7 +65,7 @@ public class UserClientService {
         headers.set("Content-Type", "application/json");
 
         // Création de l'objet de demande (par exemple, un objet MaladieChroniqueDTO ou un autre DTO qui contient les informations)
-        MaladieChroniqueDTO maladieDTO = new MaladieChroniqueDTO( maladieChronique, descriptionMaladie, utilisateurDTO.getEmail());
+        MaladieChroniqueDTO maladieDTO = new MaladieChroniqueDTO( maladieChronique, encryptionUtils.encrypt(descriptionMaladie), utilisateurDTO.getEmail());
 
         // Création de l'entité HTTP avec les en-têtes et le corps de la requête
         HttpEntity<MaladieChroniqueDTO> entity = new HttpEntity<>(maladieDTO, headers);
@@ -82,7 +84,7 @@ public class UserClientService {
                 log.info("Erreur lors de la mise à jour de la maladie chronique. Code: " + response.getStatusCode());
             }
         } catch (Exception e) {
-            log.info("Erreur lors de l'appel au microservice des contrats : " + e.getMessage());
+            log.info("Erreur lors de l'appel au microservice des utilisateurs : " + e.getMessage());
         }
     }
 }

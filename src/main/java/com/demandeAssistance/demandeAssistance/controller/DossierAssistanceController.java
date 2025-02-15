@@ -5,12 +5,14 @@ import com.demandeAssistance.demandeAssistance.model.DossierAssistance;
 import com.demandeAssistance.demandeAssistance.service.DossierAssistanceServiceInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
@@ -25,17 +27,24 @@ public class DossierAssistanceController {
         this.dossierAssistanceService = dossierAssistanceService;
     }
 
-    @PostMapping(value="/create", consumes = {MULTIPART_FORM_DATA_VALUE, "application/json"})
+    @PostMapping(value = "/create", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @PreAuthorize("hasRole('CLIENT')")
-    public ResponseEntity<DossierAssistance> createDossier(@RequestHeader("Authorization") String authorizationHeader,
-            @RequestBody CreationDossierDTO createDossierDTO, @RequestParam(value = "constat", required = false) MultipartFile constat,
-            @RequestParam(value = "documents", required = false) List<MultipartFile> documents) throws IOException {
+    public ResponseEntity<DossierAssistance> createDossier(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestPart("dossierData") CreationDossierDTO createDossierDTO,
+            @RequestPart(value = "pdfFiles", required = false) List<MultipartFile> pdfFiles,
+            @RequestPart(value = "imageFiles", required = false) List<MultipartFile> imageFiles) throws Exception {
 
         String token = authorizationHeader.replace("Bearer ", "");
 
-        DossierAssistance dossier = dossierAssistanceService.createDossier(createDossierDTO, constat, documents, token);
+        List<MultipartFile> allDocuments = new ArrayList<>();
+        if (pdfFiles != null) allDocuments.addAll(pdfFiles);
+        if (imageFiles != null) allDocuments.addAll(imageFiles);
+
+        DossierAssistance dossier = dossierAssistanceService.createDossier(createDossierDTO, allDocuments, token);
         return ResponseEntity.ok(dossier);
     }
+
 
     // Les dossiers du meme contrat
     @GetMapping("/getContratDossiers/{id}")
