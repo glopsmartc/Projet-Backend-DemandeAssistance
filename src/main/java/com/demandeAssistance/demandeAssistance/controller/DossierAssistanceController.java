@@ -47,9 +47,9 @@ public class DossierAssistanceController {
 
 
     // Les dossiers du meme contrat
-    @GetMapping("/getContratDossiers/{id}")
+    @GetMapping("/getContratDossiers")
     @PreAuthorize("hasAnyRole('CLIENT','CONSEILLER')")
-    public ResponseEntity<List<DossierAssistance>> getContratDossiers(@PathVariable Long idContrat)
+    public ResponseEntity<List<DossierAssistance>> getContratDossiers(@RequestParam("idContrat") Long idContrat)
     {
         List<DossierAssistance> dossierAssistances = dossierAssistanceService.getContratDossiers(idContrat);
         if (dossierAssistances.isEmpty()) {
@@ -93,9 +93,9 @@ public class DossierAssistanceController {
         return ResponseEntity.ok(dossiers);
     }
 
-    @GetMapping("/contrat/{id}")
+    @GetMapping("/contrat")
     @PreAuthorize("hasAnyRole('CLIENT','CONSEILLER')")
-    public ResponseEntity<String> getOffreDesciptionByContratId(@PathVariable Long contratId, @RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<String> getOffreDesciptionByContratId(@RequestParam("idContrat") Long contratId, @RequestHeader("Authorization") String authorizationHeader) {
         String token = authorizationHeader.replace("Bearer ", "");
         log.info("Demande de récupération du contrat avec ID: {}", contratId);
 

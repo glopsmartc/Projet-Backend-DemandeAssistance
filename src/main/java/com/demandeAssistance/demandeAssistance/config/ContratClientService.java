@@ -63,7 +63,7 @@ public class ContratClientService {
     }
 
     public List<Long> getContratsIdForClient(String token) {
-        String url = contratServiceUrl + "/user-contracts-id";
+        String url = contratServiceUrl + "/api/contrat/user-contracts-id";
 
         // Création des en-têtes HTTP avec le token JWT
         HttpHeaders headers = new HttpHeaders();

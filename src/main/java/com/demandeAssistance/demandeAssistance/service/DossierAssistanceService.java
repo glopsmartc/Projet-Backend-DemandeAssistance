@@ -135,7 +135,21 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
     @Override
     public String getOffreDesciptionByContratId(Long idContrat, String token) {
         log.info("Récupération du contrat avec ID: {}", idContrat);
-        return contratClientService.getContratById(idContrat, token);
+
+        try {
+            String description = contratClientService.getContratById(idContrat, token);
+
+            if (description == null || description.isEmpty()) {
+                log.warn("Aucune description trouvée pour le contrat ID: {}", idContrat);
+                return "Aucune description disponible"; // Ou retournez une valeur par défaut
+            }
+
+            return description;
+        } catch (Exception e) {
+            log.error("Erreur lors de la récupération de la description du contrat ID: {}", idContrat, e);
+
+            return "Erreur lors de la récupération de la description du contrat";
+        }
     }
 
     @Override
@@ -161,5 +175,4 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
 
         return allDossiers;
     }
-
 }
