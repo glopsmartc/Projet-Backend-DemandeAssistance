@@ -162,4 +162,9 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
         return allDossiers;
     }
 
+    @Override
+    public Optional<DossierAssistance> getDossierById(Long id) {
+        return dossierAssistanceRepository.findById(id);
+    }
+
 }

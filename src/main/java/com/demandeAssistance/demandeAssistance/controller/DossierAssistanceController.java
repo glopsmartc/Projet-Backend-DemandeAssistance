@@ -108,4 +108,11 @@ public class DossierAssistanceController {
         return ResponseEntity.ok(description);
     }
 
+    @GetMapping("/dossier/{id}")
+    @PreAuthorize("hasAnyRole('CLIENT', 'CONSEILLER', 'LOGISTICIEN')")
+    public ResponseEntity<DossierAssistance> getDossierById(@PathVariable Long id) {
+        Optional<DossierAssistance> dossier = dossierAssistanceService.getDossierById(id);
+        return dossier.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
 }

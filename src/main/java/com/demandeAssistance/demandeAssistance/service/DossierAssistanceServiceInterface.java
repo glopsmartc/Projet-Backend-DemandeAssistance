@@ -18,4 +18,7 @@ public interface DossierAssistanceServiceInterface {
     String getOffreDesciptionByContratId(Long idContrat, String token);
 
     List<DossierAssistance> getAllDossiersClient(String token);
+
+    Optional<DossierAssistance> getDossierById(Long id);
+
 }
