@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -166,5 +167,4 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
     public Optional<DossierAssistance> getDossierById(Long id) {
         return dossierAssistanceRepository.findById(id);
     }
-
 }
