@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
@@ -106,6 +107,13 @@ public class DossierAssistanceController {
         }
 
         return ResponseEntity.ok(description);
+    }
+
+    @GetMapping("/dossier/{id}")
+    @PreAuthorize("hasAnyRole('CLIENT', 'CONSEILLER', 'LOGISTICIEN')")
+    public ResponseEntity<DossierAssistance> getDossierById(@PathVariable Long id) {
+        Optional<DossierAssistance> dossier = dossierAssistanceService.getDossierById(id);
+        return dossier.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
 }

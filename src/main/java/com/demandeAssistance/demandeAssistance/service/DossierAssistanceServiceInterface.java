@@ -4,8 +4,8 @@ import com.demandeAssistance.demandeAssistance.dto.CreationDossierDTO;
 import com.demandeAssistance.demandeAssistance.model.DossierAssistance;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 public interface DossierAssistanceServiceInterface {
 
@@ -18,4 +18,7 @@ public interface DossierAssistanceServiceInterface {
     String getOffreDesciptionByContratId(Long idContrat, String token);
 
     List<DossierAssistance> getAllDossiersClient(String token);
+
+    Optional<DossierAssistance> getDossierById(Long id);
+
 }
