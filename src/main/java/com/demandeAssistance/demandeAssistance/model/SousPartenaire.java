@@ -1,6 +1,5 @@
 package com.demandeAssistance.demandeAssistance.model;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -37,4 +36,7 @@ public class SousPartenaire {
 
     @Column(columnDefinition = "TEXT")
     private String servicesProposes; // Liste sous forme de chaîne (exp: "service1,service2,service3")
+
+    @OneToMany(mappedBy = "sousPartenaire", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DossierAssistance> dossiersAssistance;
 }

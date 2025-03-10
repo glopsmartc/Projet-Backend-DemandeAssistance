@@ -60,7 +60,7 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
 
         // Ajoute les valeurs générées automatiquement
         dossier.setDateOuverture(LocalDate.now());
-        dossier.setStatutDossier("Ouvert");
+        dossier.setStatutDossier("En attente");
         dossier.setPositionActuelle(createDossierDTO.getPositionActuelle());
         dossier.setPriorite(createDossierDTO.getPriorite());
         dossier.setFraisTotalDepense(0.0);
@@ -181,4 +181,14 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
     public Optional<DossierAssistance> getDossierById(Long id) {
         return dossierAssistanceRepository.findById(id);
     }
+
+    @Override
+    public DossierAssistance updateStatutDossier(Long id, String statut) {
+        return dossierAssistanceRepository.findById(id).map(dossier -> {
+            dossier.setStatutDossier(statut);
+            return dossierAssistanceRepository.save(dossier);
+        }).orElseThrow(() -> new RuntimeException("Dossier non trouvé avec l'ID " + id));
+    }
+
+
 }

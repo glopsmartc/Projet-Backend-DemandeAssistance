@@ -1,5 +1,6 @@
 package com.demandeAssistance.demandeAssistance.service;
 
+import com.demandeAssistance.demandeAssistance.model.DossierAssistance;
 import com.demandeAssistance.demandeAssistance.model.SousPartenaire;
 
 import java.util.List;
@@ -15,4 +16,6 @@ public interface SousPartenaireServiceInterface {
     SousPartenaire modifierSousPartenaire(Long id, SousPartenaire sousPartenaireModifie);
 
     void supprimerSousPartenaire(Long id);
+
+    DossierAssistance assignerSousPartenaireDossier(Long idSousPartenaire, Long idDossier);
 }

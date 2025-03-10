@@ -1,7 +1,8 @@
 package com.demandeAssistance.demandeAssistance.controller;
 
+import com.demandeAssistance.demandeAssistance.model.DossierAssistance;
 import com.demandeAssistance.demandeAssistance.model.SousPartenaire;
-import com.demandeAssistance.demandeAssistance.service.SousPartenaireService;
+import com.demandeAssistance.demandeAssistance.service.SousPartenaireServiceInterface;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -12,9 +13,9 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/sousPartenaires")
 public class SousPartenaireController {
-    private final SousPartenaireService sousPartenaireService;
+    private final SousPartenaireServiceInterface sousPartenaireService;
 
-    public SousPartenaireController(SousPartenaireService sousPartenaireService) {
+    public SousPartenaireController(SousPartenaireServiceInterface sousPartenaireService) {
         this.sousPartenaireService = sousPartenaireService;
     }
 
@@ -47,5 +48,14 @@ public class SousPartenaireController {
     public ResponseEntity<Void> supprimerSousPartenaire(@PathVariable Long id) {
         sousPartenaireService.supprimerSousPartenaire(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasRole('LOGISTICIEN')")
+    @PutMapping("/assigner/{idSousPartenaire}/dossier/{idDossier}")
+    public ResponseEntity<DossierAssistance> assignerSousPartenaireDossier(
+            @PathVariable Long idSousPartenaire,
+            @PathVariable Long idDossier) {
+        DossierAssistance dossierAssistance = sousPartenaireService.assignerSousPartenaireDossier(idSousPartenaire, idDossier);
+        return ResponseEntity.ok(dossierAssistance);
     }
 }
