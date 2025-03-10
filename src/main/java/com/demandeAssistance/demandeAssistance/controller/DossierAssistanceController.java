@@ -11,12 +11,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 @RequestMapping("/api/assistance")
 @RestController
@@ -116,4 +114,18 @@ public class DossierAssistanceController {
         return dossier.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @PatchMapping("/updateStatut/{id}")
+    @PreAuthorize("hasAnyRole('CONSEILLER', 'LOGISTICIEN')")
+    public ResponseEntity<DossierAssistance> updateStatutDossier(
+            @PathVariable Long id,
+            @RequestParam String statut) {
+
+        try {
+            DossierAssistance dossier = dossierAssistanceService.updateStatutDossier(id, statut);
+            return ResponseEntity.ok(dossier);
+        } catch (RuntimeException e) {
+            log.error("Erreur lors de la mise à jour du statut du dossier ID {}: {}", id, e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
+    }
 }
