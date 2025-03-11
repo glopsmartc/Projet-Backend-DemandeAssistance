@@ -128,4 +128,13 @@ public class DossierAssistanceController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @PreAuthorize("hasRole('LOGISTICIEN')")
+    @PutMapping("/assigner/{idPartenaire}/dossier/{idDossier}")
+    public ResponseEntity<DossierAssistance> assignerSousPartenaireDossier(
+            @PathVariable Long idPartenaire,
+            @PathVariable Long idDossier) {
+        DossierAssistance dossierAssistance = dossierAssistanceService.assignerPartenaireDossier(idPartenaire, idDossier);
+        return ResponseEntity.ok(dossierAssistance);
+    }
 }

@@ -50,7 +50,7 @@ public class SousPartenaireController {
         return ResponseEntity.noContent().build();
     }
 
-    @PreAuthorize("hasRole('LOGISTICIEN')")
+    @PreAuthorize("hasRole('PARTENAIRE')")
     @PutMapping("/assigner/{idSousPartenaire}/dossier/{idDossier}")
     public ResponseEntity<DossierAssistance> assignerSousPartenaireDossier(
             @PathVariable Long idSousPartenaire,

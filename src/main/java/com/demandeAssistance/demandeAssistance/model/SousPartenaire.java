@@ -37,6 +37,6 @@ public class SousPartenaire {
     @Column(columnDefinition = "TEXT")
     private String servicesProposes; // Liste sous forme de chaîne (exp: "service1,service2,service3")
 
-    @OneToMany(mappedBy = "sousPartenaire", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToMany(mappedBy = "sousPartenaires")
     private List<DossierAssistance> dossiersAssistance;
 }

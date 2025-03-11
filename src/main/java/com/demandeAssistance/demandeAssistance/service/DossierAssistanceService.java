@@ -4,6 +4,7 @@ import com.demandeAssistance.demandeAssistance.config.ContratClientService;
 import com.demandeAssistance.demandeAssistance.config.UserClientService;
 import com.demandeAssistance.demandeAssistance.dto.CreationDossierDTO;
 import com.demandeAssistance.demandeAssistance.dto.UtilisateurDTO;
+import com.demandeAssistance.demandeAssistance.exception.DossierAssistanceNotFoundException;
 import com.demandeAssistance.demandeAssistance.model.DossierAssistance;
 import com.demandeAssistance.demandeAssistance.model.DossierAssistanceRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -31,10 +32,13 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
     private final UserClientService userClientService;
     private final ContratClientService contratClientService;
 
-    public DossierAssistanceService(DossierAssistanceRepository dossierAssistanceRepository, UserClientService userClientService, ContratClientService contratClientService) {
+    private final NotificationService notificationService;
+
+    public DossierAssistanceService(DossierAssistanceRepository dossierAssistanceRepository, UserClientService userClientService, ContratClientService contratClientService, NotificationService notificationService) {
         this.dossierAssistanceRepository = dossierAssistanceRepository;
         this.userClientService = userClientService;
         this.contratClientService = contratClientService;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -77,6 +81,8 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
             );
         }
 
+        // Envoyer une notification au logisticien
+        notificationService.notifyLogisticien("Un nouveau dossier d'assistance a été créé : " + dossier.getDescription());
         return dossier;
     }
 
@@ -190,5 +196,12 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
         }).orElseThrow(() -> new RuntimeException("Dossier non trouvé avec l'ID " + id));
     }
 
+    @Override
+    public DossierAssistance assignerPartenaireDossier(Long idPartenaire, Long idDossier) {
+        DossierAssistance dossierAssistance = dossierAssistanceRepository.findById(idDossier)
+                .orElseThrow(() -> new DossierAssistanceNotFoundException("Dossier Assistance avec ID " + idDossier + " non trouvé."));
 
+        dossierAssistance.setPartenaire(idPartenaire);
+        return dossierAssistanceRepository.save(dossierAssistance);
+    }
 }

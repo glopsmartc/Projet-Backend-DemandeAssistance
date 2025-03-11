@@ -76,8 +76,15 @@ public class DossierAssistance {
     @Column(name = "email", nullable = false)
     private String email;
 
-    @ManyToOne
-    @JoinColumn(name = "sous_partenaire_id", nullable = false)
-    private SousPartenaire sousPartenaire;
+    @ManyToMany
+    @JoinTable(
+            name = "dossier_sous_partenaire",
+            schema = "demande_assistance",
+            joinColumns = @JoinColumn(name = "id_dossier"),
+            inverseJoinColumns = @JoinColumn(name = "id_sous_partenaire")
+    )
+    private List<SousPartenaire> sousPartenaires;
+
+    private Long Partenaire;
 }
 
