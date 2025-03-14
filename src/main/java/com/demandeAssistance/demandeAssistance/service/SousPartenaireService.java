@@ -8,6 +8,7 @@ import com.demandeAssistance.demandeAssistance.model.SousPartenaire;
 import com.demandeAssistance.demandeAssistance.model.SousPartenaireRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,7 +61,6 @@ public class SousPartenaireService implements SousPartenaireServiceInterface {
         }
         sousPartenaireRepository.deleteById(id);
     }
-
     @Override
     public DossierAssistance assignerSousPartenaireDossier(Long idSousPartenaire, Long idDossier) {
         SousPartenaire sousPartenaire = sousPartenaireRepository.findById(idSousPartenaire)
@@ -69,7 +69,14 @@ public class SousPartenaireService implements SousPartenaireServiceInterface {
         DossierAssistance dossierAssistance = dossierAssistanceRepository.findById(idDossier)
                 .orElseThrow(() -> new DossierAssistanceNotFoundException("Dossier Assistance avec ID " + idDossier + " non trouvé."));
 
-        dossierAssistance.setSousPartenaire(sousPartenaire);
+        if (dossierAssistance.getSousPartenaires() == null) {
+            dossierAssistance.setSousPartenaires(new ArrayList<>());
+        }
+
+        if (!dossierAssistance.getSousPartenaires().contains(sousPartenaire)) {
+            dossierAssistance.getSousPartenaires().add(sousPartenaire);
+        }
         return dossierAssistanceRepository.save(dossierAssistance);
     }
+
 }
