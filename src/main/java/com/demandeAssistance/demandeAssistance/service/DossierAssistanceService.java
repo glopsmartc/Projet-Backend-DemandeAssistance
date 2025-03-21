@@ -204,4 +204,16 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
         dossierAssistance.setPartenaire(idPartenaire);
         return dossierAssistanceRepository.save(dossierAssistance);
     }
+
+    @Override
+    public List<DossierAssistance> getAllDossiersPartenaire(String token) {
+        UtilisateurDTO utilisateurDTO = userClientService.getAuthenticatedUser(token);
+        if (utilisateurDTO == null || utilisateurDTO.getId() == null) {
+            throw new IllegalArgumentException("Utilisateur non trouvé ou ID invalide");
+        }
+
+        Long partenaireId = utilisateurDTO.getId();
+
+        return dossierAssistanceRepository.findByPartenaire(partenaireId);
+    }
 }
