@@ -85,6 +85,6 @@ public class DossierAssistance {
     )
     private List<SousPartenaire> sousPartenaires;
 
-    private Long Partenaire;
+    private Long partenaire;
 }
 

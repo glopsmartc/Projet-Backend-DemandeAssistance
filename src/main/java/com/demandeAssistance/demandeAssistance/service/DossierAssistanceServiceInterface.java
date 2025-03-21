@@ -24,4 +24,6 @@ public interface DossierAssistanceServiceInterface {
     DossierAssistance updateStatutDossier(Long id, String statut);
 
     DossierAssistance assignerPartenaireDossier(Long idSousPartenaire, Long idDossier);
+
+    List<DossierAssistance> getAllDossiersPartenaire(String token);
 }

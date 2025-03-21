@@ -92,6 +92,23 @@ public class DossierAssistanceController {
         return ResponseEntity.ok(dossiers);
     }
 
+    @GetMapping("/allDossiersPartenaire")
+    @PreAuthorize("hasRole('PARTENAIRE')")
+    public ResponseEntity<List<DossierAssistance>> allDossiersPartenaire(@RequestHeader("Authorization") String authorizationHeader) {
+        String token = authorizationHeader.replace("Bearer ", "");
+
+        log.info("Entered allDossiersPartenaire method");
+        List<DossierAssistance> dossiers = dossierAssistanceService.getAllDossiersPartenaire(token);
+
+        if (dossiers.isEmpty()) {
+            log.warn("No dossiers found.");
+        } else {
+            log.info("Found dossiers: {}", dossiers);
+        }
+
+        return ResponseEntity.ok(dossiers);
+    }
+
     @GetMapping("/contrat")
     @PreAuthorize("hasAnyRole('CLIENT','CONSEILLER')")
     public ResponseEntity<String> getOffreDesciptionByContratId(@RequestParam("idContrat") Long contratId, @RequestHeader("Authorization") String authorizationHeader) {

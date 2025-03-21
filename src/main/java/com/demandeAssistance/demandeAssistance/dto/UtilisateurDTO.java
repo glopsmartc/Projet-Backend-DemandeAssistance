@@ -10,6 +10,7 @@ public class UtilisateurDTO {
     private String nom;
     private String prenom;
     private String role;
+    private Long id;
 }
 
 
