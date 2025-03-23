@@ -7,6 +7,8 @@ import com.demandeAssistance.demandeAssistance.dto.UtilisateurDTO;
 import com.demandeAssistance.demandeAssistance.exception.DossierAssistanceNotFoundException;
 import com.demandeAssistance.demandeAssistance.model.DossierAssistance;
 import com.demandeAssistance.demandeAssistance.model.DossierAssistanceRepository;
+
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -215,5 +217,15 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
         Long partenaireId = utilisateurDTO.getId();
 
         return dossierAssistanceRepository.findByPartenaire(partenaireId);
+    }
+
+    @Override
+    @Transactional
+    public DossierAssistance removePartenaireDossier(Long idDossier) {
+        DossierAssistance dossier = dossierAssistanceRepository.findById(idDossier)
+                .orElseThrow(() -> new RuntimeException("Dossier non trouvé avec l'ID: " + idDossier));
+        
+        dossier.setPartenaire(null); // Set the partenaire to null
+        return dossierAssistanceRepository.save(dossier);
     }
 }

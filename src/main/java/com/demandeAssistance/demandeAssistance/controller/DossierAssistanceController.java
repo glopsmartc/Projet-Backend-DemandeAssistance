@@ -149,9 +149,17 @@ public class DossierAssistanceController {
     @PreAuthorize("hasRole('LOGISTICIEN')")
     @PutMapping("/assigner/{idPartenaire}/dossier/{idDossier}")
     public ResponseEntity<DossierAssistance> assignerSousPartenaireDossier(
-            @PathVariable Long idPartenaire,
+            @PathVariable(required = false) Long idPartenaire,
             @PathVariable Long idDossier) {
         DossierAssistance dossierAssistance = dossierAssistanceService.assignerPartenaireDossier(idPartenaire, idDossier);
+        return ResponseEntity.ok(dossierAssistance);
+    }
+    
+    @PreAuthorize("hasRole('LOGISTICIEN')")
+    @PutMapping("/removePartenaire/dossier/{idDossier}")
+    public ResponseEntity<DossierAssistance> removePartenaireDossier(
+            @PathVariable Long idDossier) {
+        DossierAssistance dossierAssistance = dossierAssistanceService.removePartenaireDossier(idDossier);
         return ResponseEntity.ok(dossierAssistance);
     }
 }

@@ -25,7 +25,7 @@ public class SousPartenaireController {
         return ResponseEntity.ok(sousPartenaireService.ajouterSousPartenaire(sousPartenaire));
     }
 
-    @PreAuthorize("hasRole('CONSEILLER')")
+    @PreAuthorize("hasRole('CONSEILLER') or hasRole('LOGISTICIEN')")
     @GetMapping("/allSousPartenaires")
     public ResponseEntity<List<SousPartenaire>> obtenirTousLesSousPartenaires() {
         return ResponseEntity.ok(sousPartenaireService.obtenirTousLesSousPartenaires());
