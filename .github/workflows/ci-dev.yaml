@@ -1,6 +1,7 @@
 name: CI/CD Pipeline Microservice Demande Assistance
 env:
   JWT_SECRET: ${{ secrets.JWT_SECRET }}
+  ENCRYPTION_SECRET_KEY: ${{ secrets.ENCRYPTION_SECRET_KEY }}
 
 on:
   push:
