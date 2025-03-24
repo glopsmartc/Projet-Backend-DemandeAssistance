@@ -25,13 +25,13 @@ public class SousPartenaireController {
         return ResponseEntity.ok(sousPartenaireService.ajouterSousPartenaire(sousPartenaire));
     }
 
-    @PreAuthorize("hasRole('CONSEILLER') or hasRole('LOGISTICIEN')")
+    @PreAuthorize("hasRole('CONSEILLER') or hasRole('LOGISTICIEN') or hasRole('PARTENAIRE')")
     @GetMapping("/allSousPartenaires")
     public ResponseEntity<List<SousPartenaire>> obtenirTousLesSousPartenaires() {
         return ResponseEntity.ok(sousPartenaireService.obtenirTousLesSousPartenaires());
     }
 
-    @PreAuthorize("hasRole('CONSEILLER')")
+    @PreAuthorize("hasRole('CONSEILLER') or hasRole('PARTENAIRE')")
     @GetMapping("/detailsSousPartenaire/{id}")
     public ResponseEntity<Optional<SousPartenaire>> obtenirSousPartenaireParId(@PathVariable Long id) {
         return ResponseEntity.ok(sousPartenaireService.obtenirSousPartenaireParId(id));
