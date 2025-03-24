@@ -9,7 +9,7 @@ env:
   IP_ADDRESS_BACK: ${{ secrets.IP_ADDRESS_BACK }}
   IP_ADDRESS_FRONT: ${{ secrets.IP_ADDRESS_FRONT }}
   JWT_SECRET: ${{secrets.JWT_SECRET}}
-  ENCRYPTION_SECRET_KEY: ${{ENCRYPTION_SECRET_KEY}}
+  ENCRYPTION_SECRET_KEY: ${{secrets.ENCRYPTION_SECRET_KEY}}
 
 jobs:
   compile-DemandeAssistanceService:
