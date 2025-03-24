@@ -8,6 +8,8 @@ import lombok.Setter;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Entity
 @Table(name = "sous_partenaire", schema = "demande_assistance") // Table et schéma
 @NoArgsConstructor
@@ -38,5 +40,6 @@ public class SousPartenaire {
     private String servicesProposes; // Liste sous forme de chaîne (exp: "service1,service2,service3")
 
     @ManyToMany(mappedBy = "sousPartenaires")
+    @JsonBackReference  // Ignorer cette relation pendant la sérialisation
     private List<DossierAssistance> dossiersAssistance;
 }
