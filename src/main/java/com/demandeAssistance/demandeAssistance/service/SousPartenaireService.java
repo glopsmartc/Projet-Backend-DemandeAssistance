@@ -6,6 +6,9 @@ import com.demandeAssistance.demandeAssistance.model.DossierAssistance;
 import com.demandeAssistance.demandeAssistance.model.DossierAssistanceRepository;
 import com.demandeAssistance.demandeAssistance.model.SousPartenaire;
 import com.demandeAssistance.demandeAssistance.model.SousPartenaireRepository;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -79,4 +82,19 @@ public class SousPartenaireService implements SousPartenaireServiceInterface {
         return dossierAssistanceRepository.save(dossierAssistance);
     }
 
+    @Override
+    @Transactional
+    public DossierAssistance removeSousPartenaireDossier(Long idDossier, Long idSousPartenaire) {
+        DossierAssistance dossier = dossierAssistanceRepository.findById(idDossier)
+                .orElseThrow(() -> new DossierAssistanceNotFoundException("Dossier non trouvé avec l'ID: " + idDossier));
+        
+        SousPartenaire sousPartenaire = sousPartenaireRepository.findById(idSousPartenaire)
+                .orElseThrow(() -> new SousPartenaireNotFoundException("Sous-Partenaire avec ID " + idSousPartenaire + " non trouvé."));
+        
+        if (dossier.getSousPartenaires() != null) {
+            dossier.getSousPartenaires().remove(sousPartenaire);
+        }
+        
+        return dossierAssistanceRepository.save(dossier);
+    }
 }

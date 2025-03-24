@@ -18,4 +18,6 @@ public interface SousPartenaireServiceInterface {
     void supprimerSousPartenaire(Long id);
 
     DossierAssistance assignerSousPartenaireDossier(Long idSousPartenaire, Long idDossier);
+
+    DossierAssistance removeSousPartenaireDossier(Long idDossier, Long idSousPartenaire);
 }
