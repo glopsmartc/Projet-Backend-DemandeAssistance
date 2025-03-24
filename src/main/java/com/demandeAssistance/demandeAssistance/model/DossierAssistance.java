@@ -9,6 +9,8 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 @Entity
 @Table(name = "dossier_assistance", schema = "demande_assistance") // Table et schéma
 @NoArgsConstructor
@@ -83,6 +85,7 @@ public class DossierAssistance {
             joinColumns = @JoinColumn(name = "id_dossier"),
             inverseJoinColumns = @JoinColumn(name = "id_sous_partenaire")
     )
+    @JsonManagedReference  // Gère la sérialisation de la relation
     private List<SousPartenaire> sousPartenaires;
 
     private Long partenaire;
