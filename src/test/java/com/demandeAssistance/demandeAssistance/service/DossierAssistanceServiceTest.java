@@ -82,7 +82,7 @@ class DossierAssistanceServiceTest {
         dossierAssistance.setNumTel("0123456789");
         dossierAssistance.setEmail("test@example.com");
         dossierAssistance.setDateOuverture(LocalDate.now());
-        dossierAssistance.setStatutDossier("En attente");
+        dossierAssistance.setStatutDossier("En-attente");
         dossierAssistance.setPositionActuelle("Paris");
         dossierAssistance.setPriorite("Haute");
         dossierAssistance.setFraisTotalDepense(0.0);
