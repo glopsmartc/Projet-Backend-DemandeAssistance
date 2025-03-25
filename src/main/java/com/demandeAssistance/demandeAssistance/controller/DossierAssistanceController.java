@@ -11,9 +11,17 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.core.io.Resource;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import org.springframework.core.io.UrlResource;
 
 
 @RequestMapping("/api/assistance")
@@ -154,7 +162,7 @@ public class DossierAssistanceController {
         DossierAssistance dossierAssistance = dossierAssistanceService.assignerPartenaireDossier(idPartenaire, idDossier);
         return ResponseEntity.ok(dossierAssistance);
     }
-    
+
     @PreAuthorize("hasRole('LOGISTICIEN')")
     @PutMapping("/removePartenaire/dossier/{idDossier}")
     public ResponseEntity<DossierAssistance> removePartenaireDossier(
@@ -162,4 +170,32 @@ public class DossierAssistanceController {
         DossierAssistance dossierAssistance = dossierAssistanceService.removePartenaireDossier(idDossier);
         return ResponseEntity.ok(dossierAssistance);
     }
+
+    @GetMapping("/getFile")
+    @PreAuthorize("hasAnyRole('CLIENT','LOGISTICIEN', 'PARTENAIRE')")
+    public ResponseEntity<Resource> serveFile(@RequestParam String filePath) {
+        try {
+            Path file = Paths.get(filePath);
+            Resource resource = new UrlResource(file.toUri());
+
+            if (resource.exists() || resource.isReadable()) {
+                String contentType = Files.probeContentType(file);
+
+                if (contentType == null) {
+                    contentType = "application/octet-stream";
+                }
+
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .body(resource);
+            } else {
+                throw new RuntimeException("File not found");
+            }
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Could not read the file!", e);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not determine file type", e);
+        }
+    }
+
 }
