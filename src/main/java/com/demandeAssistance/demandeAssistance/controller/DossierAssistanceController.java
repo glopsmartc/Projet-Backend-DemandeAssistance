@@ -198,4 +198,48 @@ public class DossierAssistanceController {
         }
     }
 
+    @PreAuthorize("hasRole('LOGISTICIEN')")
+    @PutMapping("/addFactures/{idDossier}")
+    public ResponseEntity<DossierAssistance> addFacturesToDossier(
+            @PathVariable Long idDossier,
+            @RequestPart(value = "factureFiles") List<MultipartFile> factureFiles) throws IOException {
+        List<String> facturePaths = dossierAssistanceService.addFacturesToDossier(idDossier, factureFiles);
+        DossierAssistance updatedDossier = dossierAssistanceService.getDossierById(idDossier).orElseThrow(() -> new RuntimeException("Dossier non trouvé"));
+        updatedDossier.setFactures(facturePaths);
+        return ResponseEntity.ok(updatedDossier);
+    }
+
+    @PostMapping("/dossier/{idDossier}/action")
+    @PreAuthorize("hasAnyRole('CONSEILLER', 'LOGISTICIEN', 'PARTENAIRE')")
+    public ResponseEntity<DossierAssistance> ajouterAction(
+            @PathVariable Long idDossier,
+            @RequestParam String action) {
+        DossierAssistance dossier = dossierAssistanceService.ajouterAction(idDossier, action);
+        return ResponseEntity.ok(dossier);
+    }
+
+    @DeleteMapping("/dossier/{idDossier}/action")
+    @PreAuthorize("hasAnyRole('CONSEILLER', 'LOGISTICIEN', 'PARTENAIRE')")
+    public ResponseEntity<DossierAssistance> supprimerAction(
+            @PathVariable Long idDossier,
+            @RequestParam String action) {
+        DossierAssistance dossier = dossierAssistanceService.supprimerAction(idDossier, action);
+        return ResponseEntity.ok(dossier);
+    }
+
+    @GetMapping("/dossier/{idDossier}/factures")
+    @PreAuthorize("hasAnyRole('CLIENT', 'CONSEILLER', 'LOGISTICIEN', 'PARTENAIRE')")
+    public ResponseEntity<List<String>> listerFactures(@PathVariable Long idDossier) {
+        List<String> factures = dossierAssistanceService.listerFactures(idDossier);
+        return ResponseEntity.ok(factures);
+    }
+
+    @GetMapping("/dossier/{idDossier}/actions")
+    @PreAuthorize("hasAnyRole('CLIENT', 'CONSEILLER', 'LOGISTICIEN', 'PARTENAIRE')")
+    public ResponseEntity<List<String>> listerActions(@PathVariable Long idDossier) {
+        List<String> actions = dossierAssistanceService.listerActions(idDossier);
+        return ResponseEntity.ok(actions);
+    }
+
+
 }
