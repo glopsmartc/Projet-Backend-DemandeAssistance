@@ -8,24 +8,17 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class SousPartenaireControllerTest {
-
-    private MockMvc mockMvc;
 
     @Mock
     private SousPartenaireServiceInterface sousPartenaireService;
@@ -33,96 +26,113 @@ class SousPartenaireControllerTest {
     @InjectMocks
     private SousPartenaireController sousPartenaireController;
 
-    private SousPartenaire dummySousPartenaire;
-
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(sousPartenaireController).build();
-
-        dummySousPartenaire = new SousPartenaire();
-        dummySousPartenaire.setIdSousPartenaire(1L);
-        dummySousPartenaire.setNomEntreprise("Test Entreprise");
-        dummySousPartenaire.setNom("Doe");
-        dummySousPartenaire.setPrenom("John");
-        dummySousPartenaire.setNumTel("1234567890");
-        dummySousPartenaire.setZoneGeographique("Zone 1");
-        dummySousPartenaire.setAdresse("123 Test Street");
-        dummySousPartenaire.setServicesProposes("Service1,Service2");
     }
 
     @Test
-    @WithMockUser(roles = "CONSEILLER")
-    void ajouterSousPartenaire_ShouldReturnCreatedSousPartenaire() throws Exception {
-        when(sousPartenaireService.ajouterSousPartenaire(any(SousPartenaire.class)))
-                .thenReturn(dummySousPartenaire);
+    void testAjouterSousPartenaire() {
+        SousPartenaire sousPartenaire = new SousPartenaire();
+        when(sousPartenaireService.ajouterSousPartenaire(any(SousPartenaire.class))).thenReturn(sousPartenaire);
 
-        mockMvc.perform(post("/api/sousPartenaires/createSousPartenaire")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"nomEntreprise\":\"Test Entreprise\",\"nom\":\"Doe\",\"prenom\":\"John\",\"numTel\":\"1234567890\",\"zoneGeographique\":\"Zone 1\",\"adresse\":\"123 Test Street\",\"servicesProposes\":\"Service1,Service2\"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.idSousPartenaire").value(1))
-                .andExpect(jsonPath("$.nomEntreprise").value("Test Entreprise"));
+        ResponseEntity<SousPartenaire> response = sousPartenaireController.ajouterSousPartenaire(sousPartenaire);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(sousPartenaire, response.getBody());
+        verify(sousPartenaireService, times(1)).ajouterSousPartenaire(sousPartenaire);
     }
 
     @Test
-    @WithMockUser(roles = "CONSEILLER")
-    void obtenirTousLesSousPartenaires_ShouldReturnListOfSousPartenaires() throws Exception {
+    void testObtenirTousLesSousPartenaires() {
         List<SousPartenaire> sousPartenaires = new ArrayList<>();
-        sousPartenaires.add(dummySousPartenaire);
-
+        sousPartenaires.add(new SousPartenaire());
+        sousPartenaires.add(new SousPartenaire());
         when(sousPartenaireService.obtenirTousLesSousPartenaires()).thenReturn(sousPartenaires);
 
-        mockMvc.perform(get("/api/sousPartenaires/allSousPartenaires"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].idSousPartenaire").value(1))
-                .andExpect(jsonPath("$[0].nomEntreprise").value("Test Entreprise"));
+        ResponseEntity<List<SousPartenaire>> response = sousPartenaireController.obtenirTousLesSousPartenaires();
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(sousPartenaires, response.getBody());
+        assertEquals(2, response.getBody().size());
+        verify(sousPartenaireService, times(1)).obtenirTousLesSousPartenaires();
     }
 
     @Test
-    @WithMockUser(roles = "CONSEILLER")
-    void obtenirSousPartenaireParId_ShouldReturnSousPartenaire() throws Exception {
-        when(sousPartenaireService.obtenirSousPartenaireParId(anyLong()))
-                .thenReturn(Optional.of(dummySousPartenaire));
+    void testObtenirTousLesSousPartenaires_EmptyList() {
+        when(sousPartenaireService.obtenirTousLesSousPartenaires()).thenReturn(new ArrayList<>());
 
-        mockMvc.perform(get("/api/sousPartenaires/detailsSousPartenaire/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.idSousPartenaire").value(1))
-                .andExpect(jsonPath("$.nomEntreprise").value("Test Entreprise"));
-    }
+        ResponseEntity<List<SousPartenaire>> response = sousPartenaireController.obtenirTousLesSousPartenaires();
 
-
-    @Test
-    @WithMockUser(roles = "CONSEILLER")
-    void modifierSousPartenaire_ShouldUpdateSousPartenaire() throws Exception {
-        dummySousPartenaire.setNomEntreprise("Updated Entreprise");
-
-        when(sousPartenaireService.modifierSousPartenaire(anyLong(), any(SousPartenaire.class)))
-                .thenReturn(dummySousPartenaire);
-
-        mockMvc.perform(put("/api/sousPartenaires/updateSousPartenaire/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"nomEntreprise\":\"Updated Entreprise\",\"nom\":\"Doe\",\"prenom\":\"John\",\"numTel\":\"1234567890\",\"zoneGeographique\":\"Zone 1\",\"adresse\":\"123 Test Street\",\"servicesProposes\":\"Service1,Service2\"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nomEntreprise").value("Updated Entreprise"));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().isEmpty());
+        verify(sousPartenaireService, times(1)).obtenirTousLesSousPartenaires();
     }
 
     @Test
-    @WithMockUser(roles = "CONSEILLER")
-    void supprimerSousPartenaire_ShouldReturnNoContent() throws Exception {
-        mockMvc.perform(delete("/api/sousPartenaires/deleteSousPartenaire/1"))
-                .andExpect(status().isNoContent());
+    void testObtenirSousPartenaireParId() {
+        Long id = 1L;
+        SousPartenaire sousPartenaire = new SousPartenaire();
+        when(sousPartenaireService.obtenirSousPartenaireParId(id)).thenReturn(Optional.of(sousPartenaire));
+
+        ResponseEntity<Optional<SousPartenaire>> response = sousPartenaireController.obtenirSousPartenaireParId(id);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().isPresent());
+        assertEquals(sousPartenaire, response.getBody().get());
+        verify(sousPartenaireService, times(1)).obtenirSousPartenaireParId(id);
     }
 
     @Test
-    @WithMockUser(roles = "PARTENAIRE")
-    void assignerSousPartenaireDossier_ShouldAssignDossier() throws Exception {
-        when(sousPartenaireService.assignerSousPartenaireDossier(anyLong(), anyLong()))
-                .thenReturn(new DossierAssistance());
+    void testModifierSousPartenaire() {
+        Long id = 1L;
+        SousPartenaire sousPartenaire = new SousPartenaire();
+        when(sousPartenaireService.modifierSousPartenaire(eq(id), any(SousPartenaire.class))).thenReturn(sousPartenaire);
 
-        mockMvc.perform(put("/api/sousPartenaires/assigner/1/dossier/1"))
-                .andExpect(status().isOk());
+        ResponseEntity<SousPartenaire> response = sousPartenaireController.modifierSousPartenaire(id, sousPartenaire);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(sousPartenaire, response.getBody());
+        verify(sousPartenaireService, times(1)).modifierSousPartenaire(id, sousPartenaire);
     }
 
+    @Test
+    void testSupprimerSousPartenaire() {
+        Long id = 1L;
+        doNothing().when(sousPartenaireService).supprimerSousPartenaire(id);
 
+        ResponseEntity<Void> response = sousPartenaireController.supprimerSousPartenaire(id);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertNull(response.getBody());
+        verify(sousPartenaireService, times(1)).supprimerSousPartenaire(id);
+    }
+
+    @Test
+    void testAssignerSousPartenaireDossier() {
+        Long idSousPartenaire = 1L;
+        Long idDossier = 2L;
+        DossierAssistance dossierAssistance = new DossierAssistance();
+        when(sousPartenaireService.assignerSousPartenaireDossier(idSousPartenaire, idDossier)).thenReturn(dossierAssistance);
+
+        ResponseEntity<DossierAssistance> response = sousPartenaireController.assignerSousPartenaireDossier(idSousPartenaire, idDossier);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(dossierAssistance, response.getBody());
+        verify(sousPartenaireService, times(1)).assignerSousPartenaireDossier(idSousPartenaire, idDossier);
+    }
+
+    @Test
+    void testRemoveSousPartenaireDossier() {
+        Long idSousPartenaire = 1L;
+        Long idDossier = 2L;
+        DossierAssistance dossierAssistance = new DossierAssistance();
+        when(sousPartenaireService.removeSousPartenaireDossier(idSousPartenaire, idDossier)).thenReturn(dossierAssistance);
+
+        ResponseEntity<DossierAssistance> response = sousPartenaireController.removeSousPartenaireDossier(idSousPartenaire, idDossier);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(dossierAssistance, response.getBody());
+        verify(sousPartenaireService, times(1)).removeSousPartenaireDossier(idSousPartenaire, idDossier);
+    }
 }
