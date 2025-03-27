@@ -193,7 +193,10 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
     @Override
     public DossierAssistance updateStatutDossier(Long id, String statut) {
         return dossierAssistanceRepository.findById(id).map(dossier -> {
-            dossier.setStatutDossier(statut);
+            if ("Clôturé".equalsIgnoreCase(statut)) {
+                dossier.setDateCloture(LocalDate.now()); // Mettre à jour la date de clôture
+            }
+            dossier.setStatutDossier(statut); // Mettre à jour le statut
             return dossierAssistanceRepository.save(dossier);
         }).orElseThrow(() -> new RuntimeException("Dossier non trouvé avec l'ID " + id));
     }
@@ -227,5 +230,107 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
         
         dossier.setPartenaire(null); // Set the partenaire to null
         return dossierAssistanceRepository.save(dossier);
+    }
+
+    @Override
+    public List<String> addFacturesToDossier(Long idDossier, List<MultipartFile> factureFiles) throws IOException {
+        // Récupérer le dossier d'assistance par son ID
+        DossierAssistance dossier = dossierAssistanceRepository.findById(idDossier)
+                .orElseThrow(() -> new DossierAssistanceNotFoundException("Dossier Assistance avec ID " + idDossier + " non trouvé."));
+
+        // Vérifie si la liste de fichiers de facture est vide
+        if (factureFiles == null || factureFiles.isEmpty()) {
+            throw new IllegalArgumentException("Aucune facture fournie.");
+        }
+
+        // Liste pour stocker les chemins des factures enregistrées
+        List<String> facturePaths = savePdfFiles(factureFiles, idDossier, "factures-demande-assistance", null);
+
+        // Ajoute les nouveaux chemins de factures à la liste des factures du dossier
+        if (dossier.getFactures() == null) {
+            dossier.setFactures(new ArrayList<>());
+        }
+        dossier.getFactures().addAll(facturePaths);
+
+        // Sauvegarde le dossier mis à jour
+        dossierAssistanceRepository.save(dossier);
+
+        return facturePaths;
+    }
+
+    @Override
+    public DossierAssistance ajouterAction(Long idDossier, String action) {
+        return dossierAssistanceRepository.findById(idDossier).map(dossier -> {
+            // Initialise la liste des actions si elle est null
+            if (dossier.getActionsRealisees() == null) {
+                dossier.setActionsRealisees(new ArrayList<>());
+            }
+
+            // Vérifie si l'action n'existe pas déjà pour éviter les doublons
+            if (!dossier.getActionsRealisees().contains(action)) {
+                dossier.getActionsRealisees().add(action);
+                log.info("Action ajoutée au dossier {}: {}", idDossier, action);
+                return dossierAssistanceRepository.save(dossier);
+            } else {
+                log.warn("Action déjà existante pour le dossier {}: {}", idDossier, action);
+                return dossier;
+            }
+        }).orElseThrow(() -> {
+            log.error("Dossier non trouvé avec l'ID {}", idDossier);
+            return new RuntimeException("Dossier non trouvé avec l'ID " + idDossier);
+        });
+    }
+
+    @Override
+    public DossierAssistance supprimerAction(Long idDossier, String action) {
+        return dossierAssistanceRepository.findById(idDossier).map(dossier -> {
+            // Vérifie si la liste des actions est non null et contient l'action
+            if (dossier.getActionsRealisees() != null && dossier.getActionsRealisees().remove(action)) {
+                log.info("Action supprimée du dossier {}: {}", idDossier, action);
+                return dossierAssistanceRepository.save(dossier);
+            } else {
+                log.warn("Action non trouvée pour le dossier {}: {}", idDossier, action);
+                return dossier;
+            }
+        }).orElseThrow(() -> {
+            log.error("Dossier non trouvé avec l'ID {}", idDossier);
+            return new RuntimeException("Dossier non trouvé avec l'ID " + idDossier);
+        });
+    }
+
+    @Override
+    public List<String> listerFactures(Long idDossier) {
+        return dossierAssistanceRepository.findById(idDossier)
+                .map(dossier -> {
+                    List<String> factures = dossier.getFactures();
+                    if (factures == null || factures.isEmpty()) {
+                        log.info("Aucune facture trouvée pour le dossier {}", idDossier);
+                        return Collections.<String>emptyList();
+                    }
+                    log.info("Listing {} factures pour le dossier {}", factures.size(), idDossier);
+                    return factures;
+                })
+                .orElseThrow(() -> {
+                    log.error("Dossier non trouvé avec l'ID {}", idDossier);
+                    return new RuntimeException("Dossier non trouvé avec l'ID " + idDossier);
+                });
+    }
+
+    @Override
+    public List<String> listerActions(Long idDossier) {
+        return dossierAssistanceRepository.findById(idDossier)
+                .map(dossier -> {
+                    List<String> actions = dossier.getActionsRealisees();
+                    if (actions == null || actions.isEmpty()) {
+                        log.info("Aucune action trouvée pour le dossier {}", idDossier);
+                        return Collections.<String>emptyList();
+                    }
+                    log.info("Listing {} actions pour le dossier {}", actions.size(), idDossier);
+                    return actions;
+                })
+                .orElseThrow(() -> {
+                    log.error("Dossier non trouvé avec l'ID {}", idDossier);
+                    return new RuntimeException("Dossier non trouvé avec l'ID " + idDossier);
+                });
     }
 }

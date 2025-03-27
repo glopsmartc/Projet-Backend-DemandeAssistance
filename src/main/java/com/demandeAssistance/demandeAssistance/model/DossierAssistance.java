@@ -1,4 +1,5 @@
 package com.demandeAssistance.demandeAssistance.model;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -85,7 +86,7 @@ public class DossierAssistance {
             joinColumns = @JoinColumn(name = "id_dossier"),
             inverseJoinColumns = @JoinColumn(name = "id_sous_partenaire")
     )
-    @JsonManagedReference  // Gère la sérialisation de la relation
+    @JsonIgnore
     private List<SousPartenaire> sousPartenaires;
 
     private Long partenaire;

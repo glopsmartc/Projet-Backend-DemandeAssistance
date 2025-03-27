@@ -4,6 +4,7 @@ import com.demandeAssistance.demandeAssistance.dto.CreationDossierDTO;
 import com.demandeAssistance.demandeAssistance.model.DossierAssistance;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,4 +29,14 @@ public interface DossierAssistanceServiceInterface {
     DossierAssistance removePartenaireDossier(Long idDossier);
 
     List<DossierAssistance> getAllDossiersPartenaire(String token);
+
+    List<String> addFacturesToDossier(Long idDossier, List<MultipartFile> factureFiles) throws IOException;
+
+    DossierAssistance ajouterAction(Long idDossier, String action);
+
+    DossierAssistance supprimerAction(Long idDossier, String action);
+
+    List<String> listerFactures(Long idDossier);
+
+    List<String> listerActions(Long idDossier);
 }
