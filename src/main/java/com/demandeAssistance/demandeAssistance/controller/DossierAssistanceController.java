@@ -11,9 +11,17 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.core.io.Resource;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import org.springframework.core.io.UrlResource;
 
 
 @RequestMapping("/api/assistance")
@@ -125,7 +133,7 @@ public class DossierAssistanceController {
     }
 
     @GetMapping("/dossier/{id}")
-    @PreAuthorize("hasAnyRole('CLIENT', 'CONSEILLER', 'LOGISTICIEN')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'CONSEILLER', 'LOGISTICIEN', 'PARTENAIRE')")
     public ResponseEntity<DossierAssistance> getDossierById(@PathVariable Long id) {
         Optional<DossierAssistance> dossier = dossierAssistanceService.getDossierById(id);
         return dossier.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
@@ -154,7 +162,7 @@ public class DossierAssistanceController {
         DossierAssistance dossierAssistance = dossierAssistanceService.assignerPartenaireDossier(idPartenaire, idDossier);
         return ResponseEntity.ok(dossierAssistance);
     }
-    
+
     @PreAuthorize("hasRole('LOGISTICIEN')")
     @PutMapping("/removePartenaire/dossier/{idDossier}")
     public ResponseEntity<DossierAssistance> removePartenaireDossier(
@@ -162,4 +170,76 @@ public class DossierAssistanceController {
         DossierAssistance dossierAssistance = dossierAssistanceService.removePartenaireDossier(idDossier);
         return ResponseEntity.ok(dossierAssistance);
     }
+
+    @GetMapping("/getFile")
+    @PreAuthorize("hasAnyRole('CLIENT','LOGISTICIEN', 'PARTENAIRE')")
+    public ResponseEntity<Resource> serveFile(@RequestParam String filePath) {
+        try {
+            Path file = Paths.get(filePath);
+            Resource resource = new UrlResource(file.toUri());
+
+            if (resource.exists() || resource.isReadable()) {
+                String contentType = Files.probeContentType(file);
+
+                if (contentType == null) {
+                    contentType = "application/octet-stream";
+                }
+
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .body(resource);
+            } else {
+                throw new RuntimeException("File not found");
+            }
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Could not read the file!", e);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not determine file type", e);
+        }
+    }
+
+    @PreAuthorize("hasRole('LOGISTICIEN')")
+    @PutMapping("/addFactures/{idDossier}")
+    public ResponseEntity<DossierAssistance> addFacturesToDossier(
+            @PathVariable Long idDossier,
+            @RequestPart(value = "factureFiles") List<MultipartFile> factureFiles) throws IOException {
+        List<String> facturePaths = dossierAssistanceService.addFacturesToDossier(idDossier, factureFiles);
+        DossierAssistance updatedDossier = dossierAssistanceService.getDossierById(idDossier).orElseThrow(() -> new RuntimeException("Dossier non trouvé"));
+        updatedDossier.setFactures(facturePaths);
+        return ResponseEntity.ok(updatedDossier);
+    }
+
+    @PostMapping("/dossier/{idDossier}/action")
+    @PreAuthorize("hasAnyRole('CONSEILLER', 'LOGISTICIEN', 'PARTENAIRE')")
+    public ResponseEntity<DossierAssistance> ajouterAction(
+            @PathVariable Long idDossier,
+            @RequestParam String action) {
+        DossierAssistance dossier = dossierAssistanceService.ajouterAction(idDossier, action);
+        return ResponseEntity.ok(dossier);
+    }
+
+    @DeleteMapping("/dossier/{idDossier}/action")
+    @PreAuthorize("hasAnyRole('CONSEILLER', 'LOGISTICIEN', 'PARTENAIRE')")
+    public ResponseEntity<DossierAssistance> supprimerAction(
+            @PathVariable Long idDossier,
+            @RequestParam String action) {
+        DossierAssistance dossier = dossierAssistanceService.supprimerAction(idDossier, action);
+        return ResponseEntity.ok(dossier);
+    }
+
+    @GetMapping("/dossier/{idDossier}/factures")
+    @PreAuthorize("hasAnyRole('CLIENT', 'CONSEILLER', 'LOGISTICIEN', 'PARTENAIRE')")
+    public ResponseEntity<List<String>> listerFactures(@PathVariable Long idDossier) {
+        List<String> factures = dossierAssistanceService.listerFactures(idDossier);
+        return ResponseEntity.ok(factures);
+    }
+
+    @GetMapping("/dossier/{idDossier}/actions")
+    @PreAuthorize("hasAnyRole('CLIENT', 'CONSEILLER', 'LOGISTICIEN', 'PARTENAIRE')")
+    public ResponseEntity<List<String>> listerActions(@PathVariable Long idDossier) {
+        List<String> actions = dossierAssistanceService.listerActions(idDossier);
+        return ResponseEntity.ok(actions);
+    }
+
+
 }

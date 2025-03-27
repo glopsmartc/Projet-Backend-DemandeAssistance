@@ -1,4 +1,5 @@
 package com.demandeAssistance.demandeAssistance.model;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -8,6 +9,8 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "dossier_assistance", schema = "demande_assistance") // Table et schéma
@@ -83,6 +86,7 @@ public class DossierAssistance {
             joinColumns = @JoinColumn(name = "id_dossier"),
             inverseJoinColumns = @JoinColumn(name = "id_sous_partenaire")
     )
+    @JsonIgnore
     private List<SousPartenaire> sousPartenaires;
 
     private Long partenaire;
