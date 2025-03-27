@@ -58,4 +58,13 @@ public class SousPartenaireController {
         DossierAssistance dossierAssistance = sousPartenaireService.assignerSousPartenaireDossier(idSousPartenaire, idDossier);
         return ResponseEntity.ok(dossierAssistance);
     }
+    
+    @PreAuthorize("hasRole('PARTENAIRE')")
+    @PutMapping("/removeSousPartenaire/{idSousPartenaire}/dossier/{idDossier}")
+    public ResponseEntity<DossierAssistance> removeSousPartenaireDossier(
+            @PathVariable Long idSousPartenaire,
+            @PathVariable Long idDossier) {
+        DossierAssistance dossierAssistance = sousPartenaireService.removeSousPartenaireDossier(idSousPartenaire, idDossier);
+        return ResponseEntity.ok(dossierAssistance);
+    }
 }
