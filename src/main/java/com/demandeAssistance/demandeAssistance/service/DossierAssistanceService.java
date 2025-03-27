@@ -84,7 +84,7 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
         }
 
         // Envoyer une notification au logisticien
-        //notificationService.notifyLogisticien("Un nouveau dossier d'assistance a été créé : " + dossier.getDescription());
+        notificationService.notifyLogisticien("Un nouveau dossier d'assistance a été créé : " + dossier.getDescription());
         return dossier;
     }
 
