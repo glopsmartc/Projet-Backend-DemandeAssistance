@@ -277,23 +277,6 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
     }
 
     @Override
-    public DossierAssistance supprimerAction(Long idDossier, String action) {
-        return dossierAssistanceRepository.findById(idDossier).map(dossier -> {
-            // Vérifie si la liste des actions est non null et contient l'action
-            if (dossier.getActionsRealisees() != null && dossier.getActionsRealisees().remove(action)) {
-                log.info("Action supprimée du dossier {}: {}", idDossier, action);
-                return dossierAssistanceRepository.save(dossier);
-            } else {
-                log.warn("Action non trouvée pour le dossier {}: {}", idDossier, action);
-                return dossier;
-            }
-        }).orElseThrow(() -> {
-            log.error("Dossier non trouvé avec l'ID {}", idDossier);
-            return new RuntimeException("Dossier non trouvé avec l'ID " + idDossier);
-        });
-    }
-
-    @Override
     public List<String> listerFactures(Long idDossier) {
         return dossierAssistanceRepository.findById(idDossier)
                 .map(dossier -> {
@@ -328,4 +311,40 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
                     return new RuntimeException("Dossier non trouvé avec l'ID " + idDossier);
                 });
     }
+
+
+    @Override
+    public DossierAssistance supprimerAction(Long idDossier, String action) {
+        return dossierAssistanceRepository.findById(idDossier).map(dossier -> {
+            if (dossier.getActionsRealisees() != null) {
+                // Normaliser le format de comparaison
+                String actionToFind = action.contains(",") ? action : action + ",0.0";
+
+                boolean removed = dossier.getActionsRealisees().removeIf(
+                        dbAction -> {
+                            // Normaliser le format de la BD (enlever les guillemets si nécessaire)
+                            String normalizedDbAction = dbAction.replace("\"", "");
+                            return normalizedDbAction.equals(actionToFind);
+                        }
+                );
+
+                if (removed) {
+                    log.info("Action supprimée: {}", actionToFind);
+                    // Recalcul du total
+                    double newTotal = dossier.getActionsRealisees().stream()
+                            .mapToDouble(a -> {
+                                String cleanAction = a.replace("\"", "");
+                                String[] parts = cleanAction.split(",");
+                                return parts.length > 1 ? Double.parseDouble(parts[1]) : 0;
+                            })
+                            .sum();
+                    dossier.setFraisTotalDepense(newTotal);
+                    return dossierAssistanceRepository.save(dossier);
+                }
+            }
+            log.warn("Action non trouvée: {}", action);
+            return dossier;
+        }).orElseThrow(() -> new RuntimeException("Dossier non trouvé"));
+    }
+
 }

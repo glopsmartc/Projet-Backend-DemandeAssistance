@@ -15,6 +15,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -235,10 +237,15 @@ public class DossierAssistanceController {
 
     @DeleteMapping("/dossier/{idDossier}/action")
     @PreAuthorize("hasAnyRole('CONSEILLER', 'LOGISTICIEN', 'PARTENAIRE')")
-    public ResponseEntity<DossierAssistance> supprimerAction(
+    public ResponseEntity<?> supprimerAction(
             @PathVariable Long idDossier,
             @RequestParam String action) {
-        DossierAssistance dossier = dossierAssistanceService.supprimerAction(idDossier, action);
+
+        // Décoder le paramètre action
+        String decodedAction = URLDecoder.decode(action, StandardCharsets.UTF_8);
+        log.info("Tentative de suppression action: {}", decodedAction);
+
+        DossierAssistance dossier = dossierAssistanceService.supprimerAction(idDossier, decodedAction);
         return ResponseEntity.ok(dossier);
     }
 
