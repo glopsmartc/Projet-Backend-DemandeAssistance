@@ -6,6 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface DossierAssistanceServiceInterface {
@@ -30,9 +31,9 @@ public interface DossierAssistanceServiceInterface {
 
     List<DossierAssistance> getAllDossiersPartenaire(String token);
 
-    List<String> addFacturesToDossier(Long idDossier, List<MultipartFile> factureFiles) throws IOException;
+    List<String> addFacturesToDossier(Long idDossier, List<MultipartFile> factureFiles, String token) throws IOException;
 
-    DossierAssistance ajouterAction(Long idDossier, String action);
+    DossierAssistance ajouterAction(Long idDossier, List<Map<String, Object>> actions, Double totalCost);
 
     DossierAssistance supprimerAction(Long idDossier, String action);
 

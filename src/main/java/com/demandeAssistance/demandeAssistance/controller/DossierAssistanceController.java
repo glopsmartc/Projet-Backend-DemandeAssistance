@@ -1,10 +1,12 @@
 package com.demandeAssistance.demandeAssistance.controller;
 
 import com.demandeAssistance.demandeAssistance.dto.CreationDossierDTO;
+import com.demandeAssistance.demandeAssistance.exception.DossierAssistanceNotFoundException;
 import com.demandeAssistance.demandeAssistance.model.DossierAssistance;
 import com.demandeAssistance.demandeAssistance.service.DossierAssistanceServiceInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,6 +18,7 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.core.io.Resource;
@@ -198,12 +201,14 @@ public class DossierAssistanceController {
         }
     }
 
-    @PreAuthorize("hasRole('LOGISTICIEN')")
-    @PutMapping("/addFactures/{idDossier}")
+    @PreAuthorize("hasRole('PARTENAIRE')")
+    @PutMapping(value="/addFactures/{idDossier}", consumes ={MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<DossierAssistance> addFacturesToDossier(
+            @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable Long idDossier,
             @RequestPart(value = "factureFiles") List<MultipartFile> factureFiles) throws IOException {
-        List<String> facturePaths = dossierAssistanceService.addFacturesToDossier(idDossier, factureFiles);
+        String token = authorizationHeader.replace("Bearer ", "");
+        List<String> facturePaths = dossierAssistanceService.addFacturesToDossier(idDossier, factureFiles, token);
         DossierAssistance updatedDossier = dossierAssistanceService.getDossierById(idDossier).orElseThrow(() -> new RuntimeException("Dossier non trouvé"));
         updatedDossier.setFactures(facturePaths);
         return ResponseEntity.ok(updatedDossier);
@@ -213,8 +218,18 @@ public class DossierAssistanceController {
     @PreAuthorize("hasAnyRole('CONSEILLER', 'LOGISTICIEN', 'PARTENAIRE')")
     public ResponseEntity<DossierAssistance> ajouterAction(
             @PathVariable Long idDossier,
-            @RequestParam String action) {
-        DossierAssistance dossier = dossierAssistanceService.ajouterAction(idDossier, action);
+            @RequestBody Map<String, Object> payload) {
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> actions = (List<Map<String, Object>>) payload.get("actions");
+        Number totalCost = (Number) payload.get("totalCost");
+        Double totalCostDouble = totalCost.doubleValue();
+
+        DossierAssistance dossier = dossierAssistanceService.ajouterAction(
+                idDossier,
+                actions,
+                totalCostDouble
+        );
         return ResponseEntity.ok(dossier);
     }
 
