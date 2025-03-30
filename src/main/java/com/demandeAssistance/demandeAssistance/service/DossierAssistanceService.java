@@ -19,10 +19,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -233,7 +230,7 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
     }
 
     @Override
-    public List<String> addFacturesToDossier(Long idDossier, List<MultipartFile> factureFiles) throws IOException {
+    public List<String> addFacturesToDossier(Long idDossier, List<MultipartFile> factureFiles, String token) throws IOException {
         // Récupérer le dossier d'assistance par son ID
         DossierAssistance dossier = dossierAssistanceRepository.findById(idDossier)
                 .orElseThrow(() -> new DossierAssistanceNotFoundException("Dossier Assistance avec ID " + idDossier + " non trouvé."));
@@ -244,7 +241,7 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
         }
 
         // Liste pour stocker les chemins des factures enregistrées
-        List<String> facturePaths = savePdfFiles(factureFiles, idDossier, "factures-demande-assistance", null);
+        List<String> facturePaths = savePdfFiles(factureFiles, idDossier, "factures-demande-assistance", token);
 
         // Ajoute les nouveaux chemins de factures à la liste des factures du dossier
         if (dossier.getFactures() == null) {
@@ -259,43 +256,24 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
     }
 
     @Override
-    public DossierAssistance ajouterAction(Long idDossier, String action) {
+    public DossierAssistance ajouterAction(Long idDossier, List<Map<String, Object>> actions, Double totalCost) {
         return dossierAssistanceRepository.findById(idDossier).map(dossier -> {
             // Initialise la liste des actions si elle est null
             if (dossier.getActionsRealisees() == null) {
                 dossier.setActionsRealisees(new ArrayList<>());
             }
-
-            // Vérifie si l'action n'existe pas déjà pour éviter les doublons
-            if (!dossier.getActionsRealisees().contains(action)) {
-                dossier.getActionsRealisees().add(action);
-                log.info("Action ajoutée au dossier {}: {}", idDossier, action);
-                return dossierAssistanceRepository.save(dossier);
-            } else {
-                log.warn("Action déjà existante pour le dossier {}: {}", idDossier, action);
-                return dossier;
+            // Ajoute chaque action avec son coût dans le format "action,cout"
+            for (Map<String, Object> action : actions) {
+                String name = (String) action.get("name");
+                Number cost = (Number) action.get("cost");
+                String actionComplete = name + "," + cost.doubleValue();
+                dossier.getActionsRealisees().add(actionComplete);
             }
-        }).orElseThrow(() -> {
-            log.error("Dossier non trouvé avec l'ID {}", idDossier);
-            return new RuntimeException("Dossier non trouvé avec l'ID " + idDossier);
-        });
-    }
 
-    @Override
-    public DossierAssistance supprimerAction(Long idDossier, String action) {
-        return dossierAssistanceRepository.findById(idDossier).map(dossier -> {
-            // Vérifie si la liste des actions est non null et contient l'action
-            if (dossier.getActionsRealisees() != null && dossier.getActionsRealisees().remove(action)) {
-                log.info("Action supprimée du dossier {}: {}", idDossier, action);
-                return dossierAssistanceRepository.save(dossier);
-            } else {
-                log.warn("Action non trouvée pour le dossier {}: {}", idDossier, action);
-                return dossier;
-            }
-        }).orElseThrow(() -> {
-            log.error("Dossier non trouvé avec l'ID {}", idDossier);
-            return new RuntimeException("Dossier non trouvé avec l'ID " + idDossier);
-        });
+            // Met à jour le total des frais
+            dossier.setFraisTotalDepense(totalCost);
+            return dossierAssistanceRepository.save(dossier);
+        }).orElseThrow(() -> new RuntimeException("Dossier non trouvé avec l'ID " + idDossier));
     }
 
     @Override
@@ -333,4 +311,40 @@ public class DossierAssistanceService implements DossierAssistanceServiceInterfa
                     return new RuntimeException("Dossier non trouvé avec l'ID " + idDossier);
                 });
     }
+
+
+    @Override
+    public DossierAssistance supprimerAction(Long idDossier, String action) {
+        return dossierAssistanceRepository.findById(idDossier).map(dossier -> {
+            if (dossier.getActionsRealisees() != null) {
+                // Normaliser le format de comparaison
+                String actionToFind = action.contains(",") ? action : action + ",0.0";
+
+                boolean removed = dossier.getActionsRealisees().removeIf(
+                        dbAction -> {
+                            // Normaliser le format de la BD (enlever les guillemets si nécessaire)
+                            String normalizedDbAction = dbAction.replace("\"", "");
+                            return normalizedDbAction.equals(actionToFind);
+                        }
+                );
+
+                if (removed) {
+                    log.info("Action supprimée: {}", actionToFind);
+                    // Recalcul du total
+                    double newTotal = dossier.getActionsRealisees().stream()
+                            .mapToDouble(a -> {
+                                String cleanAction = a.replace("\"", "");
+                                String[] parts = cleanAction.split(",");
+                                return parts.length > 1 ? Double.parseDouble(parts[1]) : 0;
+                            })
+                            .sum();
+                    dossier.setFraisTotalDepense(newTotal);
+                    return dossierAssistanceRepository.save(dossier);
+                }
+            }
+            log.warn("Action non trouvée: {}", action);
+            return dossier;
+        }).orElseThrow(() -> new RuntimeException("Dossier non trouvé"));
+    }
+
 }
